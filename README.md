@@ -1,5 +1,8 @@
 ## Caching-Proxy-Server
 A CLI tool that starts a caching proxy server, it will forward requests to the actual server and cache the responses. If the same request is made again, it will return the cached response instead of forwarding the request to the server.
+
+![Screenshot 2025-05-31 163836](https://github.com/user-attachments/assets/faa9a5c6-7ffe-45f0-9163-d0ff92ccc64f)
+
 ## Prerequisites-
 
 - **[Node.js](https://nodejs.org/)**
