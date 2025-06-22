@@ -1,4 +1,4 @@
-const getRequstConfig = (url, body = null, headers = {}) => {
+const getRequstConfig = (url, headers = {}) => {
     const config = {
         url,
         method: 'get',
@@ -7,10 +7,6 @@ const getRequstConfig = (url, body = null, headers = {}) => {
             ...headers
         },
         timeout: 3000
-    }
-
-    if (body) {
-        config.data = body;
     }
 
     return config;
