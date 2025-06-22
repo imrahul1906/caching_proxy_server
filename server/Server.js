@@ -1,56 +1,65 @@
 import axios from "axios";
-import express, { response } from "express"
-import cors from "cors";
+import express from "express";
+import { Cache } from "../cache/Cache.js";
 import getRequstConfig from "../config/RequestConfig.js";
 
 export class Server {
-    constructor({ port = 3000, cache = null }) {
+    constructor(options) {
+        const { origin, port } = options;
+        this.origin = origin;
         this.port = port;
-        this.cache = cache;
-
         this.app = express();
+    }
 
-        // this is a middleware used to parse the json passed in request body.
-        // Needed if body is passed in request.
-        this.app.use(express.json())
+    async init() {
+        this.initCache();
+        this.app.use(express.json());
+        this.setRoutes();
+    }
 
-        this.startServer();
+    initCache() {
+        this.cache = new Cache();
     }
 
     startServer() {
         this.app.listen(this.port, () => {
-            console.log(`Server is started on port: ${this.port}`);
+            console.log(`Server is started on port ${this.port}...`);
         });
 
-        this.app.on('error', (error) => {
-            console.log(`Error occured while starting server: ${error}`);
+        this.app.on("error", (error) => {
+            console.error(`Error starting server: ${error}`);
             throw new Error(error);
-        })
+        });
     }
 
-    loadUrl(url) {
-        this.app.get("/", (req, res) => this.handleRequest(req, res, url));
+    setRoutes() {
+        // To handle all requests.
+        this.app.get("/{*params}", (req, res) => this.handleRequest(req, res));
     }
 
-    async handleRequest(request, res, url) {
+    async handleRequest(request, res) {
+        // request.path will leave the query params. hence using originalurl.
+        const fullUrl = `${this.origin.replace(/\/$/, "")}${request.originalUrl}`;
+        console.log("⏩ Forwarding to:", fullUrl);
+
         try {
-            // Check if data is already there in cache
-            const cachedData = this.cache?.get(url);
+            const cachedData = await this.cache?.get(fullUrl);
             if (cachedData) {
-                res.setHeader('X-Cache', 'HIT');
-                console.log('X-Cache: HIT');
+                res.setHeader("X-Cache", "HIT");
+                console.log("X-Cache: HIT");
                 return res.status(200).send(cachedData);
             }
 
-            const config = getRequstConfig(url)
+            const config = getRequstConfig(fullUrl);
             const response = await axios(config);
-            this.cache?.set(url, response.data);
-            res.setHeader('X-Cache', 'MISS');
-            console.log('X-Cache: MISS');
+            this.cache?.set(fullUrl, response.data);
+
+            res.setHeader("X-Cache", "MISS");
+            console.log("X-Cache: MISS");
             return res.status(response.status).send(response.data);
         } catch (err) {
-            res.status(500).json({ error: 'Failed to fetch external data' });
-            throw new Error(err);
+            console.error("Error fetching from origin:", err.message);
+            return res.status(500).json({ error: "Failed to fetch external data" });
         }
     }
 }

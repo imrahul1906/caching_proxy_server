@@ -1,7 +1,7 @@
 import NodeCache from "node-cache";
 
 export class Cache {
-    constructor(options) {
+    constructor() {
         this.cache = new NodeCache({ stdTTL: 60 });
     }
 

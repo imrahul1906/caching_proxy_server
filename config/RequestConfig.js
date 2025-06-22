@@ -1,7 +1,7 @@
-const getRequstConfig = (url, method = 'get', body = null, headers = {}) => {
+const getRequstConfig = (url, body = null, headers = {}) => {
     const config = {
         url,
-        method,
+        method: 'get',
         headers: {
             'Content-Type': "application/json",
             ...headers

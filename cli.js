@@ -1,11 +1,8 @@
 import { Command } from "commander";
 import figlet from "figlet";
-import { Controller } from "./controllers/Controller.js";
+import { Server } from "./server/Server.js";
 
 const program = new Command();
-
-const banner = figlet.textSync('Caching Proxy Server');
-
 
 program
     .name("Caching Proxy Server")
@@ -36,17 +33,17 @@ program
     })
 
 program
-    .command('load')
+    .command('caching-proxy')
     .option('-p, --port <number>', 'Port on which proxy server will run ')
-    .requiredOption('-o, --url <string>', 'Url of the server to which requests will be forwarded')
+    .requiredOption('--origin <string>', 'Url of the server to which requests will be forwarded')
     .action((options) => {
         try {
-            const controller = new Controller(options);
-            controller.loadUrl();
+            const server = new Server(options);
+            server.init();
+            server.startServer();
         } catch (e) {
             console.log(`Could not initialize command: ${e}`);
         }
-
     });
 
 program.parse();
